@@ -1,0 +1,175 @@
+//add a print formatting function ??
+
+
+function Paley(q)
+  F<x>:= FiniteField(q);
+  //Graph<Point set | edge set>
+  P:= {@v: v in F@};
+  G,V,E := Graph <P | {<a,{b: b in P| (a-b) ne 0 and IsSquare(a-b)}>: a in P}>;
+  return G;
+end function;
+
+function DRGParams(Gr)
+  //credit Morgan Rodgers
+  //this function returns strongly(distance) regular params
+  if (Diameter(Gr) ne 2 or not IsDistanceRegular(Gr)) then
+    return []; // this means not distance regular
+  else
+    u := Rep(Vertices(Gr)); // takes an arbitrary point in the graph
+    v1 := Rep(Neighbors(u));
+    lambda := #(Neighbors(u) meet Neighbors(v1));
+    v2 := rep{v : v in Vertices(Gr) | v ne u and not v in Neighbors(u)};
+    mu := #(Neighbors(u) meet Neighbors(v2));
+    return [#VertexSet(Gr), Degree(u),lambda, mu]; // returns [v,k,lambda,mu]
+  end if;
+end function;
+
+function find_eigenvalues(seq)
+  Z:=Integers();
+  v:= seq[1];
+  k:= seq[2];
+  lambda := seq[3];
+  mu := seq[4];
+  theta1 := (-1 + Sqrt(v))/2;
+  theta2 := (-1 - Sqrt(v))/2;
+  return Z!k, Z!theta1, Z!theta2;
+end function;
+
+function find_cardinalities(q,k, theta1, theta2, type)
+  //takes in an Eigenvalue corresponding to the type user asked for
+  //returns a set of cardinalities and # neighbor pairs
+  if type eq 0 then //type 1 so theta 2
+    cards := {x : x in {0..q} |(theta2 + ((q-1)/2 - theta2)*(x)/q) in Integers()};
+    poss := {@<c,n>: c in cards,n in {-2 .. k} |n eq (theta2 + ((q-1)/2 - theta2)*(c)/q)@};
+  else //tight set so theta1 type 2
+    cards := {x : x in {0..q} |(theta1 + ((q-1)/2 - theta1)*(x)/q) in Integers()};
+    poss := {@<c,n>: c in cards, n in {0..k} |n eq (theta1 + ((q-1)/2 - theta1)*(c)/q)@};
+  end if;
+  return poss;
+end function;
+
+function convert_to_tightsets(G, seq, q)
+  F:= FiniteField(q);
+  f:= {@f:f in F@};
+  V:= VertexSet(G);
+  verts:= {@v: v in V@};
+  ret:= {};
+  for item in seq do
+    set:={};
+    i := 1;
+    for entry in ElementToSequence(item) do
+      if entry eq 1 then
+        set:= &join{set, {verts[i]}};
+      end if;
+      i:= i+1;
+    end for;
+    ret:= &join{ret,{set}};
+  end for;
+  return ret;
+end function;
+
+
+function tight_set_speedup(G, type, size)
+  //finds tight sets of given type with speedup search hack
+
+  A:= AdjacencyMatrix(G);
+  seq := DRGParams(G);
+  q := seq[1];
+  V:=VectorSpace(Rationals(), q);
+  k, theta1, theta2 := find_eigenvalues(seq);
+  if type eq 1 then
+   theta := theta2;
+  else
+   theta:= theta1;
+  end if;
+  // print Type(theta);
+  ret:= {};
+  E:= Eigenspace(A, theta);
+  E0 := Eigenspace(A,k);
+  W:= sub<V| {V!v: v in (SequenceToSet(Basis(E))join SequenceToSet(Basis(E0)))}>;
+  // W:= sub<V| {V!v: v in (Basis(E) cat Basis(E0))}>;
+  B:= Basis(W);
+  subs := Subsets(SequenceToSet(B), size);
+  for s in subs do
+    if s ne {} then
+      vec:= &+{i : i in s};
+      if forall(u){u: u in ElementToSequence(vec) | u eq 0 or u eq 1} then
+        ret := &join{ret, {vec}};
+      end if;
+    end if;
+  end for;
+  ts := convert_to_tightsets(G, SetToSequence(ret), q);
+
+  return ts;
+end function;
+
+procedure print_formatting(sets)
+   F := Open("./Paley_new_type1" ,"w");
+   for element in sets do
+     // for set in element do
+    for p in element do
+         fprintf F, "%o, ", p;
+     end for;
+       fprintf F, "\n";
+     // end for;
+   end for;
+
+end procedure;
+
+function RemIsom(T,H,X)
+  TS := {};
+  while not IsEmpty(T) do
+    A := Rep(T);
+    Include(~TS,A);
+    for B in T do
+      if IsConjugate(H, X, A, B) then
+        Exclude(~T,B);
+      end if;
+    end for;
+  end while;
+  return TS;
+end function;
+
+//main
+
+q:= 49;
+G:= Paley(q);
+
+
+// ts := tight_set_speedup(G, 1);
+// print_formatting(ts, 1);
+// ts;
+// PrintFile("./Paley49high_type1.txt", ts: Overwrite:= false);
+ts := {};
+for i in {1..25} do
+  ts2 := tight_set_speedup(G, 2 ,i);
+  ts:= &join{ts, ts2};
+  print i;
+end for;
+seven := {v: v in ts | #v eq 7};
+fourteen := {v: v in ts | #v eq 14};
+print("Take out unions of two cliques");
+newsets := {t : t in fourteen | t notin {s join p : s,p in seven}};
+#newsets;
+
+///////////////////////////////////////////////////////////////////////////////
+print("Take out isomorphic tight sets");
+
+
+H,X := AutomorphismGroup(G);
+//build a k to coerce into V
+// k:= {V!(f) : f in {i: i in newsets }};
+// k:= {V!f : f in newsets };
+
+
+
+final := RemIsom(newsets, H, X);
+#final;
+
+
+
+
+// print_formatting(ts);
+// PrintFile("./Paley49high_type2.txt", ts: Overwrite:= false);
+
+"done";

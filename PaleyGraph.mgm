@@ -1,0 +1,234 @@
+//Define a function to take in an arbitrary Q and create the paley graph
+//FUNCTIONS
+function Paley(q)
+  F<x>:= FiniteField(q);
+  //Graph<Point set | edge set>
+  P:= {@v: v in F@};
+  G,V,E := Graph <P | {<a,{b: b in P| (a-b) ne 0 and IsSquare(a-b)}>: a in P}>;
+  return G;
+end function;
+
+procedure PrintMat(fname, M)
+  //credit Morgan Rodgers
+  // procedure vs function because it doesn't return anything
+    F := Open(fname,"w"); // If a file named fname exists already this will overwrite it
+    for i in [1..Nrows(M)] do
+      for j in [1..Ncols(M)] do
+        fprintf F, "%o ", M[i,j];
+        // This says to put M[i,j] where the %o is
+      end for;
+      fprintf F, "\n"; // Adds the newline after each row
+    end for;
+end procedure;
+
+function DRGParams(Gr)
+  //credit Morgan Rodgers
+  //this function returns strongly(distance) regular params
+  if (Diameter(Gr) ne 2 or not IsDistanceRegular(Gr)) then
+    return []; // this means not distance regular
+  else
+    u := Rep(Vertices(Gr)); // takes an arbitrary point in the graph
+    v1 := Rep(Neighbors(u));
+    lambda := #(Neighbors(u) meet Neighbors(v1));
+    v2 := rep{v : v in Vertices(Gr) | v ne u and not v in Neighbors(u)};
+    mu := #(Neighbors(u) meet Neighbors(v2));
+    return [#VertexSet(Gr), Degree(u),lambda, mu]; // returns [v,k,lambda,mu]
+  end if;
+end function;
+
+function find_eigenvalues(seq)
+  v:= seq[1];
+  k:= seq[2];
+  lambda := seq[3];
+  mu := seq[4];
+
+  theta1 := (-1 + Sqrt(v))/2;
+  theta2 := (-1 - Sqrt(v))/2;
+
+  return k, theta1, theta2;
+end function;
+
+function find_cardinalities(q,k, theta1, theta2, type)
+  //takes in an Eigenvalue corresponding to the type user asked for
+  //returns a set of cardinalities and # neighbor pairs
+  if type eq 1 then //ovoid so theta 2
+    cards := {x : x in {0..q} |(theta2 + ((q-1)/2 - theta2)*(x)/q) in Integers()};
+    poss := {@<c,n>: c in cards,n in {-2 .. k} |n eq (theta2 + ((q-1)/2 - theta2)*(c)/q)@};
+  else //tight set so theta1
+    cards := {x : x in {0..q} |(theta1 + ((q-1)/2 - theta1)*(x)/q) in Integers()};
+    poss := {@<c,n>: c in cards, n in {0..k} |n eq (theta1 + ((q-1)/2 - theta1)*(c)/q)@};
+  end if;
+  return poss;
+end function;
+
+//function find NONTRIVIAL tight sets to generalize //
+function find_tight_sets(G, type)
+  verts := VertexSet(G);
+  size := #verts;
+  F:= FiniteField(size);
+  P:= {v: v in F };
+  seq := DRGParams(G); //credit Morgan
+  k, theta1, theta2 := find_eigenvalues(seq);
+  poss := find_cardinalities(#verts, k, theta1, theta2, type);
+  print "cardinality-number neighbor pairs";
+  print poss;
+  ret := {};
+  for item in poss do
+    c := item[1];
+    n := item[2];
+    if c ne 0 and c ne #verts then
+      //set of sets of size c of verts st each vert has n common neighbors
+      // maybe := {v: v in verts | v  eq c};
+      set:=  {@k : k in Subsets(P, c) |
+      forall(v){v:v in k |#(Neighbors(verts!v) meet {verts!u: u in k}) eq n}@};//
+      ret:= &join{ret, set};
+      print set;
+    end if;
+  end for;
+  return ret;
+end function;
+
+
+///////////////////////////////////////////////////////////////////////////
+//
+function IsCycleDecomposition(G, tight_sets)
+  for item in tight_sets do
+    tracker := {};
+    edges := EdgeSet(G);
+    // item is a set of vertices
+    for i in item do
+      for j in item do
+        if i ne j then
+          if {i,j} in edges then
+             if <i,j> notin tracker then
+              //remove
+              tracker := &join {tracker, {<i,j>, <j,i>} };
+              // print tracker;
+              G-:= {{i,j}};
+            end if;
+          else
+            return false;
+          end if;
+        end if;
+      end for;
+    end for;
+  end for;
+  if #EdgeSet(G) eq 0 then
+    return true;
+  else
+    return false;
+  end if;
+end function;
+
+//__main__
+/***********************************************************************/
+
+// q:= 9;
+// G9:= Paley(q);
+// tight_set_speedup(G9, 1);
+//
+//
+//
+//
+// "\nnontrivial type 1 tight sets for Paley Graph P(9):";
+// ovs := find_tight_sets(G9, 1);
+// ovs;
+// // PrintFile("Paley9ovoids.txt", ovs);
+// "\nnontrivial type 2 tight sets for Paley Graph P(9):";
+// ts := find_tight_sets(G9, 2);
+// ts;
+// // PrintFile("Paley9ts.txt", ts);
+// // IsCycleDecomposition(G9, {t : t in ts | #t eq 3});
+// // IsCycleDecomposition(G9, {t : t in ts | #t eq 6});
+//
+//
+q:= 25;
+G25:= Paley(q);
+// "nontrivial type 1 tight sets for Paley Graph P(25):";
+ovs := find_tight_sets(G25, 1);
+PrintFile("./Paley25ts1.txt", ovs);
+"nontrivial type 2 tight sets for Paley Graph P(25):";
+ts := find_tight_sets(G25, 2);
+PrintFile("./Paley25ts2.txt", ts);
+// IsCycleDecomposition(G25, {t : t in ts | #t eq 5});
+
+
+// //////////////////////////////////////////////////////////////////////
+// q:= 49;
+// G49:= Paley(q);
+// "nontrivial ovoids for Paley Graph P(49):";
+// ovs := find_tight_sets(G49, 1);
+// PrintFile("~/Desktop/Paley49type1.txt", ovs);
+// "nontrivial tight sets for Paley Graph P(49):";
+// ts := find_tight_sets(G49, 2);
+// PrintFile("~/Desktop/Paley49ts.txt", ts);
+// // IsCycleDecomposition(G49, {t : t in ts | #t eq 7});
+//
+// q:= 81;
+// G81:= Paley(q);
+// "nontrivial ovoids for Paley Graph P(81):";
+// ovs := find_tight_sets(G81, 1);
+// PrintFile("Paley81ovoids.txt", ovs);
+// "nontrivial tight sets for Paley Graph P(81):";
+// ts := find_tight_sets(G81, 2);
+// PrintFile("Paley81ts.txt", ts);
+// // IsCycleDecomposition(G81, {t : t in ts | #t eq 9});
+//
+//
+// verts := Vertices(G9);
+// // verts;
+//
+// //TIGHT SETS ---------------------------------------
+// //Hardcoded nightmare
+// // type 1 for |X| = 3 and 0 common neighbors
+// ovoid:= {{x,y,z}: x,y,z in verts | x ne y and y ne z and x ne z and x notin Neighbors(y) and x notin Neighbors(z) and y notin Neighbors(z)};
+// ovoid;
+// //type 1 also could have cardinality 6 with 2 common Neighbors
+// // ovoid6 := {{a,b,c,d,e,f,g }: a,b,c,d,e,f,g in verts | a,b,c,d,e,f,g notin {o: o in ovoid}};
+//
+// //type 2 sets for cardinality 3 have 2 common Neighbors
+// ts := {{x,y,z}: x,y,z in verts | x ne y and y ne z and x ne z and
+// x in Neighbors(y) and x in Neighbors(z) and z in Neighbors(y)};
+// ts;
+//
+// //type2 sets for cardinality 6 have 3 common neighbors
+//
+// //--------------------------------------------------
+//
+// // G9;
+// // IsDistanceRegular(G9);
+// M:=AdjacencyMatrix(G9);
+// Eigenvalues(M);
+// //Eigenspace(M,1);
+// //Eigenspace(M, -2);
+// D:= Diagonalization(M);
+// D;
+// /***********************************************************************/
+//
+// q:=25;
+// G25:= Paley(q);
+// M:= AdjacencyMatrix(G25);
+// PrintMat("o25.txt", M);
+//
+// q:= 5;
+// G5:= Paley(q);
+//
+// q:=13;
+// G13:= Paley(q);
+// M:= AdjacencyMatrix(G13);
+// PrintMat("o13.txt", M);
+//
+// G13;
+// IntersectionArray(G13);
+//
+// q:=17;
+// G17:= Paley(q);
+// G17;
+// IntersectionArray(G17);
+//
+// q := 49;
+// G:= Paley(q);
+// DRGParams(G);
+//
+// G;
+// IsDistanceRegular(G);
