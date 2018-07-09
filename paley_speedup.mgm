@@ -161,6 +161,27 @@ H,X := AutomorphismGroup(G);
 // k:= {V!(f) : f in {i: i in newsets }};
 // k:= {V!f : f in newsets };
 
+// ts := {};
+// for i in {1..25} do
+//   ts2 := tight_set_speedup(G, 2 ,i);
+//   ts:= &join{ts, ts2};
+//   print i;
+// end for;
+// seven := {v: v in ts | #v eq 7};
+// fourteen := {v: v in ts | #v eq 14};
+// twentyone := {v: v in ts | #v eq 21};
+// print("Take out unions of two cliques");
+//
+// // newsets := {t : t in twentyone | {sev : sev in seven} notin t};
+// newsets := {t : t in twentyone | forall(s){s: s in seven | #(s meet t) ne 7}};
+// #newsets;
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// print("Take out isomorphic tight sets");
+// H,X := AutomorphismGroup(G);
+// final := RemIsom(newsets, H, X);
+// #final;
+//
 
 
 final := RemIsom(newsets, H, X);
