@@ -88,6 +88,24 @@ function find_tight_sets(G, type)
   return ret;
 end function;
 
+function specific_card(G, type,c)
+  verts := VertexSet(G);
+  q := #verts;
+  seq := DRGParams(G);
+  k, theta1, theta2 := find_eigenvalues(seq);
+  if type eq 1 then
+    theta := theta2;
+  else
+    theta := theta1;
+  end if;
+  n:= theta + ((q-1)/2 - theta)*(c)/q;
+  F:= FiniteField(q);
+  P:= {v: v in F };
+  set:=  {@k : k in Subsets(P, c) |
+  forall(v){v:v in k |#(Neighbors(verts!v) meet {verts!u: u in k}) eq n}@};
+  return set;
+end function;
+
 
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -123,12 +141,14 @@ end function;
 //__main__
 /***********************************************************************/
 
+q:= 81;
+G:= Paley(q);
+cliques := specific_card(G, 2, 9);
+cliques;
+
 // q:= 9;
 // G9:= Paley(q);
 // tight_set_speedup(G9, 1);
-//
-//
-//
 //
 // "\nnontrivial type 1 tight sets for Paley Graph P(9):";
 // ovs := find_tight_sets(G9, 1);
@@ -142,14 +162,14 @@ end function;
 // // IsCycleDecomposition(G9, {t : t in ts | #t eq 6});
 //
 //
-q:= 25;
-G25:= Paley(q);
-// "nontrivial type 1 tight sets for Paley Graph P(25):";
-ovs := find_tight_sets(G25, 1);
-PrintFile("./Paley25ts1.txt", ovs);
-"nontrivial type 2 tight sets for Paley Graph P(25):";
-ts := find_tight_sets(G25, 2);
-PrintFile("./Paley25ts2.txt", ts);
+// q:= 25;
+// G25:= Paley(q);
+// // "nontrivial type 1 tight sets for Paley Graph P(25):";
+// ovs := find_tight_sets(G25, 1);
+// PrintFile("./Paley25ts1.txt", ovs);
+// "nontrivial type 2 tight sets for Paley Graph P(25):";
+// ts := find_tight_sets(G25, 2);
+// PrintFile("./Paley25ts2.txt", ts);
 // IsCycleDecomposition(G25, {t : t in ts | #t eq 5});
 
 
@@ -193,42 +213,3 @@ PrintFile("./Paley25ts2.txt", ts);
 //
 // //type2 sets for cardinality 6 have 3 common neighbors
 //
-// //--------------------------------------------------
-//
-// // G9;
-// // IsDistanceRegular(G9);
-// M:=AdjacencyMatrix(G9);
-// Eigenvalues(M);
-// //Eigenspace(M,1);
-// //Eigenspace(M, -2);
-// D:= Diagonalization(M);
-// D;
-// /***********************************************************************/
-//
-// q:=25;
-// G25:= Paley(q);
-// M:= AdjacencyMatrix(G25);
-// PrintMat("o25.txt", M);
-//
-// q:= 5;
-// G5:= Paley(q);
-//
-// q:=13;
-// G13:= Paley(q);
-// M:= AdjacencyMatrix(G13);
-// PrintMat("o13.txt", M);
-//
-// G13;
-// IntersectionArray(G13);
-//
-// q:=17;
-// G17:= Paley(q);
-// G17;
-// IntersectionArray(G17);
-//
-// q := 49;
-// G:= Paley(q);
-// DRGParams(G);
-//
-// G;
-// IsDistanceRegular(G);
