@@ -104,7 +104,7 @@ function tight_set_speedup(G, type, size)
 end function;
 
 procedure print_formatting(sets)
-   F := Open("./Paley_new_type1" ,"w");
+   F := Open("~/Paley-Graph-text-files/Paley81cliques.txt" ,"w");
    for element in sets do
      // for set in element do
     for p in element do
@@ -132,35 +132,24 @@ end function;
 
 //main
 
-q:= 49;
+// q:= 49;
+// G:= Paley(q);
+q:= 81;
 G:= Paley(q);
-
-
-// ts := tight_set_speedup(G, 1);
-// print_formatting(ts, 1);
-// ts;
-// PrintFile("./Paley49high_type1.txt", ts: Overwrite:= false);
-ts := {};
-for i in {1..25} do
-  ts2 := tight_set_speedup(G, 2 ,i);
-  ts:= &join{ts, ts2};
+ts:= {};
+for i in {1..10} do
   print i;
+  ts2 := tight_set_speedup(G, 2, i);
+  ts:= &join{ts, ts2};
 end for;
-seven := {v: v in ts | #v eq 7};
-fourteen := {v: v in ts | #v eq 14};
-print("Take out unions of two cliques");
-newsets := {t : t in fourteen | t notin {s join p : s,p in seven}};
-#newsets;
 
-///////////////////////////////////////////////////////////////////////////////
-print("Take out isomorphic tight sets");
-
-
-H,X := AutomorphismGroup(G);
-//build a k to coerce into V
-// k:= {V!(f) : f in {i: i in newsets }};
-// k:= {V!f : f in newsets };
-
+nine := {v: v in ts | #v eq 9};
+nine;
+//
+// // ts := tight_set_speedup(G, 1);
+// // print_formatting(ts, 1);
+// // ts;
+// // PrintFile("./Paley49high_type1.txt", ts: Overwrite:= false);
 // ts := {};
 // for i in {1..25} do
 //   ts2 := tight_set_speedup(G, 2 ,i);
@@ -169,28 +158,49 @@ H,X := AutomorphismGroup(G);
 // end for;
 // seven := {v: v in ts | #v eq 7};
 // fourteen := {v: v in ts | #v eq 14};
-// twentyone := {v: v in ts | #v eq 21};
 // print("Take out unions of two cliques");
-//
-// // newsets := {t : t in twentyone | {sev : sev in seven} notin t};
-// newsets := {t : t in twentyone | forall(s){s: s in seven | #(s meet t) ne 7}};
+// newsets := {t : t in fourteen | t notin {s join p : s,p in seven}};
 // #newsets;
 //
 // ///////////////////////////////////////////////////////////////////////////////
 // print("Take out isomorphic tight sets");
+//
+//
 // H,X := AutomorphismGroup(G);
+// //build a k to coerce into V
+// // k:= {V!(f) : f in {i: i in newsets }};
+// // k:= {V!f : f in newsets };
+//
+// // ts := {};
+// // for i in {1..25} do
+// //   ts2 := tight_set_speedup(G, 2 ,i);
+// //   ts:= &join{ts, ts2};
+// //   print i;
+// // end for;
+// // seven := {v: v in ts | #v eq 7};
+// // fourteen := {v: v in ts | #v eq 14};
+// // twentyone := {v: v in ts | #v eq 21};
+// // print("Take out unions of two cliques");
+// //
+// // // newsets := {t : t in twentyone | {sev : sev in seven} notin t};
+// // newsets := {t : t in twentyone | forall(s){s: s in seven | #(s meet t) ne 7}};
+// // #newsets;
+// //
+// // ///////////////////////////////////////////////////////////////////////////////
+// // print("Take out isomorphic tight sets");
+// // H,X := AutomorphismGroup(G);
+// // final := RemIsom(newsets, H, X);
+// // #final;
+// //
+//
+//
 // final := RemIsom(newsets, H, X);
 // #final;
 //
-
-
-final := RemIsom(newsets, H, X);
-#final;
-
-
-
-
-// print_formatting(ts);
-// PrintFile("./Paley49high_type2.txt", ts: Overwrite:= false);
-
-"done";
+//
+//
+//
+// // print_formatting(ts);
+// // PrintFile("./Paley49high_type2.txt", ts: Overwrite:= false);
+//
+// "done";
