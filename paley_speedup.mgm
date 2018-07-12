@@ -185,6 +185,15 @@ for i in {1..25} do
   Include(~ts, ts2);
 end for;
 
+seven := {v: v in ts | #v eq 7};
+fourteen := {v: v in ts | #v eq 14};
+twentyone := {v: v in ts | #v eq 21};
+print("Take out unions of two cliques");
+
+// newsets := {t : t in twentyone | {sev : sev in seven} notin t};
+ newsets := {t : t in twentyone | forall(s){s: s in seven | #(s meet t) ne 7}};
+ #newsets;
+
 final := RemIsom(newsets, H, X);
 #final;
 
