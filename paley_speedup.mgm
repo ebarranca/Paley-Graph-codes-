@@ -1,17 +1,34 @@
-//add a print formatting function ??
+/*
+This file creates a function to determine possible tight sets of a Paley
+graph based on the eigenspaces of its adjacency matrix. This code runs for
+higher orders than brute forcing the possible subgraphs of the correct size of
+the Paley graph
 
+Authors: Emily Barranca, Clara Buck, Lauren Hartmann
+Mentor: Morgan Rodgers
+July 2018
+*/
 
+/**************************DECLARE FUNCTIONS*****************************/
 function Paley(q)
+  /*
+  This function creates a Paley graph object
+  Parameters: order of the Paley graph
+  Returns: the constructed graph objec
+  */
   F<x>:= FiniteField(q);
-  //Graph<Point set | edge set>
+  //Graph<Vertex set | Edge set>
   P:= {@v: v in F@};
   G,V,E := Graph <P | {<a,{b: b in P| (a-b) ne 0 and IsSquare(a-b)}>: a in P}>;
   return G;
 end function;
 
 function DRGParams(Gr)
-  //credit Morgan Rodgers
-  //this function returns strongly(distance) regular params
+  /*credit Morgan Rodgers
+  This function calculates parameters for a distance regular graph
+  Parameters:
+  Returns: list of parameters or an empty list if graph not distance regular
+  */
   if (Diameter(Gr) ne 2 or not IsDistanceRegular(Gr)) then
     return []; // this means not distance regular
   else
@@ -25,6 +42,11 @@ function DRGParams(Gr)
 end function;
 
 function find_eigenvalues(seq)
+  /*
+  This function calculates the eigenvalues of a Paley graph
+  Parameters: the list of strongly regular parameters (v,k,lambda,mu)
+  Returns: the three eigenvalues k >= theta1 > 0 > theta2
+  */
   Z:=Integers();
   v:= seq[1];
   k:= seq[2];
@@ -35,20 +57,17 @@ function find_eigenvalues(seq)
   return Z!k, Z!theta1, Z!theta2;
 end function;
 
-function find_cardinalities(q,k, theta1, theta2, type)
-  //takes in an Eigenvalue corresponding to the type user asked for
-  //returns a set of cardinalities and # neighbor pairs
-  if type eq 0 then //type 1 so theta 2
-    cards := {x : x in {0..q} |(theta2 + ((q-1)/2 - theta2)*(x)/q) in Integers()};
-    poss := {@<c,n>: c in cards,n in {-2 .. k} |n eq (theta2 + ((q-1)/2 - theta2)*(c)/q)@};
-  else //tight set so theta1 type 2
-    cards := {x : x in {0..q} |(theta1 + ((q-1)/2 - theta1)*(x)/q) in Integers()};
-    poss := {@<c,n>: c in cards, n in {0..k} |n eq (theta1 + ((q-1)/2 - theta1)*(c)/q)@};
-  end if;
-  return poss;
-end function;
 
 function convert_to_tightsets(G, seq, q)
+  /*
+  This function converts characteristic vectors to their corresponding
+    tight sets in the Vertex set of Paley graph G
+  Parameters: graph object G that determines a Paley graph
+              sequence of characteristic vectors
+              the order q of the Paley graph
+  Returns: set of all tight sets corresponding to the inputted characteristic
+      vectors. lements in set are Type() GraphVert
+  */
   F:= FiniteField(q);
   f:= {@f:f in F@};
   V:= VertexSet(G);
@@ -59,19 +78,30 @@ function convert_to_tightsets(G, seq, q)
     i := 1;
     for entry in ElementToSequence(item) do
       if entry eq 1 then
-        set:= &join{set, {verts[i]}};
+        // set:= &join{set, {verts[i]}};
+        Include(~set, verts[i]);
       end if;
       i:= i+1;
     end for;
-    ret:= &join{ret,{set}};
+    // ret:= &join{ret,{set}};
+    Include(~ret, set);
   end for;
   return ret;
 end function;
 
 
 function tight_set_speedup(G, type, size)
-  //finds tight sets of given type with speedup search hack
-
+  /*
+  This function calculates characteristic vectors that determine the
+  tight sets of the Paley graph
+  Parameters: graph object G that determines a Paley graph
+              type of tight sets requesting
+                (1 for tight sets Type I or 2 for tight sets Type II)
+              size of subset of basis of eigenvectors
+                takes this param as part of a loop when called for computing
+                power purposes
+  Returns: set of tight sets of Type type corrseponding to the basis of dim size
+  */
   A:= AdjacencyMatrix(G);
   seq := DRGParams(G);
   q := seq[1];
@@ -82,7 +112,6 @@ function tight_set_speedup(G, type, size)
   else
    theta:= theta1;
   end if;
-  // print Type(theta);
   ret:= {};
   E:= Eigenspace(A, theta);
   E0 := Eigenspace(A,k);
@@ -94,29 +123,40 @@ function tight_set_speedup(G, type, size)
     if s ne {} then
       vec:= &+{i : i in s};
       if forall(u){u: u in ElementToSequence(vec) | u eq 0 or u eq 1} then
-        ret := &join{ret, {vec}};
+        // ret := &join{ret, {vec}};
+        Include(~ret, vec);
       end if;
     end if;
   end for;
   ts := convert_to_tightsets(G, SetToSequence(ret), q);
-
   return ts;
 end function;
 
 procedure print_formatting(sets)
+   /*
+   This procedure writes to a hard-coded output file in a format that is nicely
+   transferred to other files, specifically ./parser.py which sorts the tight
+   sets based on order
+   */
    F := Open("~/Paley-Graph-text-files/Paley81cliques.txt" ,"w");
    for element in sets do
-     // for set in element do
     for p in element do
          fprintf F, "%o, ", p;
      end for;
        fprintf F, "\n";
-     // end for;
    end for;
-
 end procedure;
 
 function RemIsom(T,H,X)
+  /* credit Morgan Rodgers
+  This function chooses an arbitrary element of the set of tight sets and
+    determines if the random element is isomprphic to any element in the new set
+    we build
+  Parameters: set of tight sets T
+              automorphism group H of Paley graph
+              set X of objects that are permuted by H
+  Returns: new set of only "distinct" tight sets
+  */
   TS := {};
   while not IsEmpty(T) do
     A := Rep(T);
@@ -130,77 +170,25 @@ function RemIsom(T,H,X)
   return TS;
 end function;
 
-//main
+/****************************** MAIN *******************************/
 
-// q:= 49;
-// G:= Paley(q);
-q:= 81;
+//build a Paley graph of order q
+q:= 49;
 G:= Paley(q);
+// q:= 81; //too big
+// G:= Paley(q);
 ts:= {};
-for i in {1..10} do
+for i in {1..25} do
   print i;
   ts2 := tight_set_speedup(G, 2, i);
-  ts:= &join{ts, ts2};
+  // ts:= &join{ts, ts2};
+  Include(~ts, ts2);
 end for;
 
-nine := {v: v in ts | #v eq 9};
-nine;
-//
-// // ts := tight_set_speedup(G, 1);
-// // print_formatting(ts, 1);
-// // ts;
-// // PrintFile("./Paley49high_type1.txt", ts: Overwrite:= false);
-// ts := {};
-// for i in {1..25} do
-//   ts2 := tight_set_speedup(G, 2 ,i);
-//   ts:= &join{ts, ts2};
-//   print i;
-// end for;
-// seven := {v: v in ts | #v eq 7};
-// fourteen := {v: v in ts | #v eq 14};
-// print("Take out unions of two cliques");
-// newsets := {t : t in fourteen | t notin {s join p : s,p in seven}};
-// #newsets;
-//
-// ///////////////////////////////////////////////////////////////////////////////
-// print("Take out isomorphic tight sets");
-//
-//
-// H,X := AutomorphismGroup(G);
-// //build a k to coerce into V
-// // k:= {V!(f) : f in {i: i in newsets }};
-// // k:= {V!f : f in newsets };
-//
-// // ts := {};
-// // for i in {1..25} do
-// //   ts2 := tight_set_speedup(G, 2 ,i);
-// //   ts:= &join{ts, ts2};
-// //   print i;
-// // end for;
-// // seven := {v: v in ts | #v eq 7};
-// // fourteen := {v: v in ts | #v eq 14};
-// // twentyone := {v: v in ts | #v eq 21};
-// // print("Take out unions of two cliques");
-// //
-// // // newsets := {t : t in twentyone | {sev : sev in seven} notin t};
-// // newsets := {t : t in twentyone | forall(s){s: s in seven | #(s meet t) ne 7}};
-// // #newsets;
-// //
-// // ///////////////////////////////////////////////////////////////////////////////
-// // print("Take out isomorphic tight sets");
-// // H,X := AutomorphismGroup(G);
-// // final := RemIsom(newsets, H, X);
-// // #final;
-// //
-//
-//
-// final := RemIsom(newsets, H, X);
-// #final;
-//
-//
-//
-//
-// // print_formatting(ts);
-// // PrintFile("./Paley49high_type2.txt", ts: Overwrite:= false);
-//
-// "done";
+final := RemIsom(newsets, H, X);
+#final;
+
+// print_formatting(ts);
+// PrintFile("./Paley49high_type2.txt", ts: Overwrite:= false);
+
+"done";

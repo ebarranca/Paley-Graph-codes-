@@ -173,28 +173,6 @@ cliques;
 // IsCycleDecomposition(G25, {t : t in ts | #t eq 5});
 
 
-// //////////////////////////////////////////////////////////////////////
-// q:= 49;
-// G49:= Paley(q);
-// "nontrivial ovoids for Paley Graph P(49):";
-// ovs := find_tight_sets(G49, 1);
-// PrintFile("~/Desktop/Paley49type1.txt", ovs);
-// "nontrivial tight sets for Paley Graph P(49):";
-// ts := find_tight_sets(G49, 2);
-// PrintFile("~/Desktop/Paley49ts.txt", ts);
-// // IsCycleDecomposition(G49, {t : t in ts | #t eq 7});
-//
-// q:= 81;
-// G81:= Paley(q);
-// "nontrivial ovoids for Paley Graph P(81):";
-// ovs := find_tight_sets(G81, 1);
-// PrintFile("Paley81ovoids.txt", ovs);
-// "nontrivial tight sets for Paley Graph P(81):";
-// ts := find_tight_sets(G81, 2);
-// PrintFile("Paley81ts.txt", ts);
-// // IsCycleDecomposition(G81, {t : t in ts | #t eq 9});
-//
-//
 // verts := Vertices(G9);
 // // verts;
 //
