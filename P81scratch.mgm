@@ -1,0 +1,65 @@
+//pick arbitrary "staircase" sets in p81 and see if tight sets
+//generalize to any combination of this choice of parallel classes
+
+function Paley(q)
+  F<x>:= FiniteField(q);
+  //Graph<Point set | edge set>
+  P:= {@v: v in F@};
+  G,V,E := Graph <P | {<a,{b: b in P| (a-b) ne 0 and IsSquare(a-b)}>: a in P}>;
+  return G;
+end function;
+
+/***************************** MAIN ***********************/
+
+q:= 81;
+F<x> := FiniteField(q);
+G:= Paley(q);
+V:= VertexSet(G);
+
+// possible := {V!(F!0), V!(x^20), V!(x^10), V!(F!1), V!(x^70), V!(x^60),
+// V!(x^50), V!(F!2), V!(x^51), V!(x^19), V!(x^22), V!(x^56), V!(x^78),
+// V!(x^45), V!(x^63), V!(x^68), V!(x^35), V!(x^53), V!(x^54), V!(x^37),
+// V!(x^41), V!(x^2), V!(x^36), V!(x^58), V!(x^25), V!(x^43), V!(x^48),
+// V!(x^26), V!(x^72), V!(x^71), V!(x^16), V!(x^38), V!(x^5), V!(x^75),
+// V!(x^77), V!(x^42)
+// };
+//
+// subgraph := sub<G | possible>;
+// forall(v){v: v in possible | #(Neighbors(v) meet possible) eq 20};
+// //this returned false so these tight sets can't be arbitrary staircases
+// //there might be a little more structure?
+// //OR are we in the wrong parallel class
+
+all:= AllCliques(G,9);
+//find cliques with 0
+hasZero := {c: c in all | V!(F!0) in c};
+TS:= {};
+//choose two for parallel classes
+
+//MAKE A LOOP?
+while #hasZero ne 0 do
+
+  one := Rep(hasZero);
+  Exclude(~hasZero, one);
+  //find disjoint cliques that make up parallel class
+  disjoint := {c: c in all | #(c meet one) eq 0};
+  //rep choose wherever we are and take out of set
+  pclass := &join{disjoint, {one}};
+  possible:={};
+  for i in {8..1} do
+    choice := Random(pclass);
+    Exclude(~pclass, choice);
+    sset := RandomSubset(choice, i );
+    Include(~possible, sset);
+  end for;
+  // make it a subgraph
+  if #possible ne 0 then
+    subgraph := sub<G | possible>;
+    //check if it's a tight set
+    if forall(v){v: v in possible | #(Neighbors(v) meet possible) eq 20} then
+      Include(~TS, possible);
+    end if;
+  end if;
+end while;
+TS;
+  //maybe we can find some
