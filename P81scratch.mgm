@@ -1,6 +1,11 @@
-//pick arbitrary "staircase" sets in p81 and see if tight sets
-//generalize to any combination of this choice of parallel classes
+/*
+This file provides a sandbox to maybe find a way to find a tight set
+in P81
+--pick arbitrary "staircase" sets in p81 and see if tight sets
 
+Emily Barranca, Clara Buck, Lauren Hartmann
+July 2018 
+*/
 function Paley(q)
   F<x>:= FiniteField(q);
   //Graph<Point set | edge set>
@@ -15,6 +20,8 @@ q:= 81;
 F<x> := FiniteField(q);
 G:= Paley(q);
 V:= VertexSet(G);
+
+//Test arbitrary set of 8,7,6,5,4,3,2,1,0 vertices from a parallel class
 
 // possible := {V!(F!0), V!(x^20), V!(x^10), V!(F!1), V!(x^70), V!(x^60),
 // V!(x^50), V!(F!2), V!(x^51), V!(x^19), V!(x^22), V!(x^56), V!(x^78),
@@ -34,9 +41,6 @@ all:= AllCliques(G,9);
 //find cliques with 0
 hasZero := {c: c in all | V!(F!0) in c};
 TS:= {};
-//choose two for parallel classes
-
-//MAKE A LOOP?
 while #hasZero ne 0 do
 
   one := Rep(hasZero);
