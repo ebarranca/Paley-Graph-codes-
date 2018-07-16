@@ -3,9 +3,11 @@ This file provides a sandbox to maybe find a way to find a tight set
 in P81
 --pick arbitrary "staircase" sets in p81 and see if tight sets
 
-Emily Barranca, Clara Buck, Lauren Hartmann
-July 2018 
+Authors: Emily Barranca, Clara Buck, Lauren Hartmann
+Mentor: Morgan Rodgers
+July 2018
 */
+
 function Paley(q)
   F<x>:= FiniteField(q);
   //Graph<Point set | edge set>
@@ -14,56 +16,120 @@ function Paley(q)
   return G;
 end function;
 
-/***************************** MAIN ***********************/
+//----------------------------------------------------------------------------
+function recursive_nightmare(big_set, one, two)
+  //base case
+  ts:= {};
+  if #big_set eq 1 then
+    return big_set;
+  elif #big_set eq 0 then
+    return {};
+  end if;
+  choice := Rep(one); //choose a vector out of the remaining first parallel class
+  one_minus := Subsets(choice, #(big_set)-1); //find all subsets of size 1-
+  Exclude(~one, choice); //take this vector out of parallel class
+  //for loop for sets in this set
+  for set in one_minus do
+    setx:= choice diff set;
+    x:= Rep(setx); //set x is 1 dim so this just gets rid of the outer set brackets
+    new_two := {t : t in two | forall(f){f: f in t | f ne x} }; //take out another "vertical"
+    find := two diff new_two; //grabs the vertical we took out
+    vector := Rep(find); // takes that out of a set of set
+    new_one:= {};
+    for vec in one do // builds a new "parallel class" to choose from excluding
+      newsets := {p : p in vec | p notin vector}; //the "verticals" we have taken out
+      Include(~new_one, newsets);
+    end for;
+    ret := recursive_nightmare(set, new_one, new_two); //calls the recursive function again
+    // ts := &join{ts, ret};
+    if #ret gt 1 then
+      for item in ret do
+        fuck := set join item;
+        // print fuck;
+        ts := &join{ts, {fuck}};
+      end for;
+    else
+      fuck := set join ret;
+      ts := &join{ts, {fuck}};
+    end if;
+  end for;
+  //return a set of possible tight sets
+  newret := {};
+  for guy in ts do
+    Include(~newret, guy join big_set);
+  end for;
+  // Include(~big_set, fuck);
+  // big_set := &join{big_set, fuck};
+  return newret;
+end function;
 
+/***************************** MAIN ***********************/
+// q:= 81;
+Z:= Integers();
 q:= 81;
+size := Z!(Sqrt(q)-1);
+p := Z!Sqrt(q);
 F<x> := FiniteField(q);
 G:= Paley(q);
 V:= VertexSet(G);
+alpha := Z!((q-1)/4);
 
-//Test arbitrary set of 8,7,6,5,4,3,2,1,0 vertices from a parallel class
 
-// possible := {V!(F!0), V!(x^20), V!(x^10), V!(F!1), V!(x^70), V!(x^60),
-// V!(x^50), V!(F!2), V!(x^51), V!(x^19), V!(x^22), V!(x^56), V!(x^78),
-// V!(x^45), V!(x^63), V!(x^68), V!(x^35), V!(x^53), V!(x^54), V!(x^37),
-// V!(x^41), V!(x^2), V!(x^36), V!(x^58), V!(x^25), V!(x^43), V!(x^48),
-// V!(x^26), V!(x^72), V!(x^71), V!(x^16), V!(x^38), V!(x^5), V!(x^75),
-// V!(x^77), V!(x^42)
-// };
-//
-// subgraph := sub<G | possible>;
-// forall(v){v: v in possible | #(Neighbors(v) meet possible) eq 20};
-// //this returned false so these tight sets can't be arbitrary staircases
-// //there might be a little more structure?
-// //OR are we in the wrong parallel class
-
-all:= AllCliques(G,9);
+all:= AllCliques(G,p);
 //find cliques with 0
 hasZero := {c: c in all | V!(F!0) in c};
 TS:= {};
-while #hasZero ne 0 do
+one := Rep(hasZero);
+Exclude(~hasZero, one);
+two := Rep(hasZero);
+//find disjoint cliques that make up parallel class
+disjoint_one := {c: c in all | #(c meet one) eq 0};
+disjoint_two := {c: c in all | #(c meet two) eq 0};
+//rep choose wherever we are and take out of set
+pclass_one := &join{disjoint_one, {one}};
+pclass_two := &join{disjoint_two, {two}};
 
-  one := Rep(hasZero);
-  Exclude(~hasZero, one);
-  //find disjoint cliques that make up parallel class
-  disjoint := {c: c in all | #(c meet one) eq 0};
-  //rep choose wherever we are and take out of set
-  pclass := &join{disjoint, {one}};
-  possible:={};
-  for i in {8..1} do
-    choice := Random(pclass);
-    Exclude(~pclass, choice);
-    sset := RandomSubset(choice, i );
-    Include(~possible, sset);
+maybes:={};
+excludes := {};
+choice := Rep(pclass_one);
+eights:= Subsets(choice, size);
+Exclude(~pclass_one, choice); //remove a set from set of sets
+// pclass_one := pclass_one diff choice;
+// print pclass_one;
+i:= 1;
+for ch in eights do
+  print i;
+  setx:= choice diff ch;
+  x:= Rep(setx);
+  new_two := {t : t in pclass_two | forall(f){f: f in t | f ne x} };
+  find := pclass_two diff new_two;
+  vector := Rep(find);
+  // print "find", vector;
+  // print new_two;
+  new_one:= {};
+  for vec in pclass_one do
+    newsets := {p : p in vec | p notin vector};
+    Include(~new_one, newsets);
   end for;
-  // make it a subgraph
-  if #possible ne 0 then
-    subgraph := sub<G | possible>;
-    //check if it's a tight set
-    if forall(v){v: v in possible | #(Neighbors(v) meet possible) eq 20} then
-      Include(~TS, possible);
-    end if;
+  // print "did it work?", new_one;
+  t_iter := recursive_nightmare(ch, new_one, new_two);
+  Include(~maybes, t_iter);
+  newret := {};
+  for guy in t_iter do
+    Include(~newret, guy join ch);
+  end for;
+  i := i+1;
+end for;
+//can i use recursion in magma -- do i even fucking want to....
+// #newret;
+for possible in newret do
+  subgraph := sub<G | possible>;
+  //check if it's a tight set
+  // #possible;
+  if #possible eq 2*p and forall(v){v: v in possible | #(Neighbors(v) meet possible) eq alpha} then
+  // if #possible eq 36 and forall(v){v: v in possible | #(Neighbors(v) meet possible) eq 20} then
+    Include(~TS, possible);
   end if;
-end while;
-TS;
-  //maybe we can find some
+end for;
+"Number of tight sets found ", #TS;
+//maybe we can find some
