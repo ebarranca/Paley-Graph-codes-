@@ -2,7 +2,7 @@
 This file creates a function to determine possible tight sets of a Paley
 graph based on the eigenspaces of its adjacency matrix. This code runs for
 higher orders than brute forcing the possible subgraphs of the correct size of
-the Paley graph
+the Paley graph as the PaleyGraph.mgm file does
 
 Authors: Emily Barranca, Clara Buck, Lauren Hartmann
 Mentor: Morgan Rodgers
@@ -26,7 +26,7 @@ end function;
 function DRGParams(Gr)
   /*credit Morgan Rodgers
   This function calculates parameters for a distance regular graph
-  Parameters:
+  Parameters: Graph object
   Returns: list of parameters or an empty list if graph not distance regular
   */
   if (Diameter(Gr) ne 2 or not IsDistanceRegular(Gr)) then
@@ -78,12 +78,10 @@ function convert_to_tightsets(G, seq, q)
     i := 1;
     for entry in ElementToSequence(item) do
       if entry eq 1 then
-        // set:= &join{set, {verts[i]}};
         Include(~set, verts[i]);
       end if;
       i:= i+1;
     end for;
-    // ret:= &join{ret,{set}};
     Include(~ret, set);
   end for;
   return ret;
@@ -116,14 +114,12 @@ function tight_set_speedup(G, type, size)
   E:= Eigenspace(A, theta);
   E0 := Eigenspace(A,k);
   W:= sub<V| {V!v: v in (SequenceToSet(Basis(E))join SequenceToSet(Basis(E0)))}>;
-  // W:= sub<V| {V!v: v in (Basis(E) cat Basis(E0))}>;
   B:= Basis(W);
   subs := Subsets(SequenceToSet(B), size);
   for s in subs do
     if s ne {} then
       vec:= &+{i : i in s};
       if forall(u){u: u in ElementToSequence(vec) | u eq 0 or u eq 1} then
-        // ret := &join{ret, {vec}};
         Include(~ret, vec);
       end if;
     end if;
@@ -175,8 +171,6 @@ end function;
 //build a Paley graph of order q
 q:= 49;
 G:= Paley(q);
-// q:= 81; //too big
-// G:= Paley(q);
 ts:= {};
 for i in {1..25} do
   print i;
@@ -185,17 +179,17 @@ for i in {1..25} do
   Include(~ts, ts2);
 end for;
 
-seven := {v: v in ts | #v eq 7};
-fourteen := {v: v in ts | #v eq 14};
-twentyone := {v: v in ts | #v eq 21};
-print("Take out unions of two cliques");
-
-// newsets := {t : t in twentyone | {sev : sev in seven} notin t};
- newsets := {t : t in twentyone | forall(s){s: s in seven | #(s meet t) ne 7}};
- #newsets;
-
-final := RemIsom(newsets, H, X);
-#final;
+// seven := {v: v in ts | #v eq 7};
+// fourteen := {v: v in ts | #v eq 14};
+// twentyone := {v: v in ts | #v eq 21};
+// print("Take out unions of two cliques");
+//
+// // newsets := {t : t in twentyone | {sev : sev in seven} notin t};
+//  newsets := {t : t in twentyone | forall(s){s: s in seven | #(s meet t) ne 7}};
+//  #newsets;
+//
+// final := RemIsom(newsets, H, X);
+// #final;
 
 // print_formatting(ts);
 // PrintFile("./Paley49high_type2.txt", ts: Overwrite:= false);
