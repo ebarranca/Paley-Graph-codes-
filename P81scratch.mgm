@@ -66,7 +66,7 @@ end function;
 /***************************** MAIN ***********************/
 // q:= 81;
 Z:= Integers();
-q:= 81;
+q:= 49;
 size := Z!(Sqrt(q)-1);
 p := Z!Sqrt(q);
 F<x> := FiniteField(q);
@@ -81,55 +81,58 @@ hasZero := {c: c in all | V!(F!0) in c};
 TS:= {};
 one := Rep(hasZero);
 Exclude(~hasZero, one);
-two := Rep(hasZero);
-//find disjoint cliques that make up parallel class
-disjoint_one := {c: c in all | #(c meet one) eq 0};
-disjoint_two := {c: c in all | #(c meet two) eq 0};
-//rep choose wherever we are and take out of set
-pclass_one := &join{disjoint_one, {one}};
-pclass_two := &join{disjoint_two, {two}};
+while #hasZero ne 0 do
+  two := Rep(hasZero);
+  Exclude(~hasZero, two);
+  //find disjoint cliques that make up parallel class
+  disjoint_one := {c: c in all | #(c meet one) eq 0};
+  disjoint_two := {c: c in all | #(c meet two) eq 0};
+  //rep choose wherever we are and take out of set
+  pclass_one := &join{disjoint_one, {one}};
+  pclass_two := &join{disjoint_two, {two}};
 
-maybes:={};
-excludes := {};
-choice := Rep(pclass_one);
-eights:= Subsets(choice, size);
-Exclude(~pclass_one, choice); //remove a set from set of sets
-// pclass_one := pclass_one diff choice;
-// print pclass_one;
-i:= 1;
-for ch in eights do
-  print i;
-  setx:= choice diff ch;
-  x:= Rep(setx);
-  new_two := {t : t in pclass_two | forall(f){f: f in t | f ne x} };
-  find := pclass_two diff new_two;
-  vector := Rep(find);
-  // print "find", vector;
-  // print new_two;
-  new_one:= {};
-  for vec in pclass_one do
-    newsets := {p : p in vec | p notin vector};
-    Include(~new_one, newsets);
+  maybes:={};
+  excludes := {};
+  choice := Rep(pclass_one);
+  eights:= Subsets(choice, size);
+  Exclude(~pclass_one, choice); //remove a set from set of sets
+  // pclass_one := pclass_one diff choice;
+  // print pclass_one;
+  i:= 1;
+  for ch in eights do
+    print i;
+    setx:= choice diff ch;
+    x:= Rep(setx);
+    new_two := {t : t in pclass_two | forall(f){f: f in t | f ne x} };
+    find := pclass_two diff new_two;
+    vector := Rep(find);
+    // print "find", vector;
+    // print new_two;
+    new_one:= {};
+    for vec in pclass_one do
+      newsets := {p : p in vec | p notin vector};
+      Include(~new_one, newsets);
+    end for;
+    // print "did it work?", new_one;
+    t_iter := recursive_nightmare(ch, new_one, new_two);
+    Include(~maybes, t_iter);
+    newret := {};
+    for guy in t_iter do
+      Include(~newret, guy join ch);
+    end for;
+    i := i+1;
   end for;
-  // print "did it work?", new_one;
-  t_iter := recursive_nightmare(ch, new_one, new_two);
-  Include(~maybes, t_iter);
-  newret := {};
-  for guy in t_iter do
-    Include(~newret, guy join ch);
+  //can i use recursion in magma -- do i even fucking want to....
+  // #newret;
+  for possible in newret do
+    subgraph := sub<G | possible>;
+    //check if it's a tight set
+    // #possible;
+    if #possible eq 2*p and forall(v){v: v in possible | #(Neighbors(v) meet possible) eq alpha} then
+    // if #possible eq 36 and forall(v){v: v in possible | #(Neighbors(v) meet possible) eq 20} then
+      Include(~TS, possible);
+    end if;
   end for;
-  i := i+1;
-end for;
-//can i use recursion in magma -- do i even fucking want to....
-// #newret;
-for possible in newret do
-  subgraph := sub<G | possible>;
-  //check if it's a tight set
-  // #possible;
-  if #possible eq 2*p and forall(v){v: v in possible | #(Neighbors(v) meet possible) eq alpha} then
-  // if #possible eq 36 and forall(v){v: v in possible | #(Neighbors(v) meet possible) eq 20} then
-    Include(~TS, possible);
-  end if;
-end for;
+end while;
 "Number of tight sets found ", #TS;
 //maybe we can find some
