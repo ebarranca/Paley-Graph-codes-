@@ -18,7 +18,6 @@ end function;
 
 //----------------------------------------------------------------------------
 function recursive_nightmare(big_set, one, two)
-  // print "recursive call";
   //base case
   ts:= {};
   newret := {};
@@ -46,12 +45,9 @@ function recursive_nightmare(big_set, one, two)
       end if;
     end for;
     ret := recursive_nightmare(set, new_one, new_two); //calls the recursive function again
-    // print "return";
-    // ts := &join{ts, ret};
     if #ret gt 1 then
       for item in ret do
         fuck := set join item;
-        // print fuck;
         ts := &join{ts, {fuck}};
       end for;
     else
@@ -61,20 +57,35 @@ function recursive_nightmare(big_set, one, two)
   end for;
 
   //return a set of possible tight sets
-  // newret := {};
   for guy in ts do
     Include(~newret, guy join big_set);
   end for;
-  // end for;
-  // Include(~big_set, fuck);
-  // big_set := &join{big_set, fuck};
   return newret;
 end function;
+
+procedure print_formatting(sets, filename)
+   /*
+   This procedure writes to an output file in a format that is nicely
+   transferred to other files, specifically ./parser.py which sorts the tight
+   sets based on order
+   Parameters: the set of sets to be written to an output file
+              the filename of the output file
+   */
+   F := Open(filename ,"w");
+   for element in sets do
+    for p in element do
+         fprintf F, "%o, ", p;
+     end for;
+       fprintf F, "\n";
+   end for;
+end procedure;
+
 
 /***************************** MAIN ***********************/
 // q:= 81;
 Z:= Integers();
 q:= 25;
+filename := "~/Paley-Graph-text-files/p25/staircase_tight_sets_p25" ;
 size := Z!(Sqrt(q)-1);
 p := Z!Sqrt(q);
 F<x> := FiniteField(q);
@@ -140,11 +151,12 @@ while #hasZero ne 0 do
     subgraph := sub<G | possible>;
     //check if it's a tight set
     // #possible;
-    if #possible eq 2*p and forall(v){v: v in possible | #(Neighbors(v) meet possible) eq alpha} then
+    if forall(v){v: v in possible | #(Neighbors(v) meet possible) eq alpha} then
     // if #possible eq 36 and forall(v){v: v in possible | #(Neighbors(v) meet possible) eq 20} then
       Include(~TS, possible);
     end if;
   end for;
 end while;
 "Number of tight sets found ", #TS;
+print_formatting(TS, filename);
 //maybe we can find some

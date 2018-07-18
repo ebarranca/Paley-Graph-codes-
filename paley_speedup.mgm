@@ -128,13 +128,15 @@ function tight_set_speedup(G, type, size)
   return ts;
 end function;
 
-procedure print_formatting(sets)
+procedure print_formatting(sets, filename)
    /*
-   This procedure writes to a hard-coded output file in a format that is nicely
+   This procedure writes to an output file in a format that is nicely
    transferred to other files, specifically ./parser.py which sorts the tight
    sets based on order
+   Parameters: the set of sets to be written to an output file
+              the filename of the output file 
    */
-   F := Open("~/Paley-Graph-text-files/Paley81cliques.txt" ,"w");
+   F := Open(filename ,"w");
    for element in sets do
     for p in element do
          fprintf F, "%o, ", p;
