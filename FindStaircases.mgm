@@ -92,8 +92,8 @@ end procedure;
 /***************************** MAIN ***********************/
 // q:= 81;
 Z:= Integers();
-q:= 25;
-filename := "~/Paley-Graph-text-files/p25/staircase_tight_sets_p25" ;
+q:= 81;
+filename := "~/Paley-Graph-text-files/p81/staircase_tight_sets_p81.txt" ;
 size := Z!(Sqrt(q)-1);
 p := Z!Sqrt(q);
 F<x> := FiniteField(q);
@@ -139,12 +139,15 @@ while #hasZero ne 0 do
     end for;
     //ordering the parallel class correctly
     options := Permutations(new_one);
+    j:=0;
     for choose_one in options do
+      print "  ", j;
     t_iter := recursive_nightmare(ch, choose_one, new_two);
       Include(~maybes, t_iter);
       for guy in t_iter do
         Include(~newret, guy join ch);
       end for;
+      j:=j+1;
     end for;
     i := i+1;
   end for;
