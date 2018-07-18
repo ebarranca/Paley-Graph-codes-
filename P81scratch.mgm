@@ -18,16 +18,19 @@ end function;
 
 //----------------------------------------------------------------------------
 function recursive_nightmare(big_set, one, two)
+  // print "recursive call";
   //base case
   ts:= {};
+  newret := {};
   if #big_set eq 1 then
     return big_set;
   elif #big_set eq 0 then
     return {};
   end if;
-  choice := Rep(one); //choose a vector out of the remaining first parallel class
+  choice := one[1]; //choose a vector out of the remaining first parallel class
+  // for choice in one do
   one_minus := Subsets(choice, #(big_set)-1); //find all subsets of size 1-
-  Exclude(~one, choice); //take this vector out of parallel class
+  // Exclude(~one, choice); //take this vector out of parallel class
   //for loop for sets in this set
   for set in one_minus do
     setx:= choice diff set;
@@ -35,12 +38,15 @@ function recursive_nightmare(big_set, one, two)
     new_two := {t : t in two | forall(f){f: f in t | f ne x} }; //take out another "vertical"
     find := two diff new_two; //grabs the vertical we took out
     vector := Rep(find); // takes that out of a set of set
-    new_one:= {};
+    new_one:= [];
     for vec in one do // builds a new "parallel class" to choose from excluding
-      newsets := {p : p in vec | p notin vector}; //the "verticals" we have taken out
-      Include(~new_one, newsets);
+      if vec ne choice then
+        newsets := {p : p in vec | p notin vector}; //the "verticals" we have taken out
+        Include(~new_one, newsets);
+      end if;
     end for;
     ret := recursive_nightmare(set, new_one, new_two); //calls the recursive function again
+    // print "return";
     // ts := &join{ts, ret};
     if #ret gt 1 then
       for item in ret do
@@ -53,11 +59,13 @@ function recursive_nightmare(big_set, one, two)
       ts := &join{ts, {fuck}};
     end if;
   end for;
+
   //return a set of possible tight sets
-  newret := {};
+  // newret := {};
   for guy in ts do
     Include(~newret, guy join big_set);
   end for;
+  // end for;
   // Include(~big_set, fuck);
   // big_set := &join{big_set, fuck};
   return newret;
@@ -66,7 +74,7 @@ end function;
 /***************************** MAIN ***********************/
 // q:= 81;
 Z:= Integers();
-q:= 49;
+q:= 25;
 size := Z!(Sqrt(q)-1);
 p := Z!Sqrt(q);
 F<x> := FiniteField(q);
@@ -109,16 +117,20 @@ while #hasZero ne 0 do
     // print "find", vector;
     // print new_two;
     new_one:= {};
+    newret := {};
     for vec in pclass_one do
       newsets := {p : p in vec | p notin vector};
       Include(~new_one, newsets);
     end for;
-    // print "did it work?", new_one;
-    t_iter := recursive_nightmare(ch, new_one, new_two);
-    Include(~maybes, t_iter);
-    newret := {};
-    for guy in t_iter do
-      Include(~newret, guy join ch);
+    options := Permutations(new_one);
+    //for all possible orders of this set, call this
+    //permutations?
+    for choose_one in options do
+    t_iter := recursive_nightmare(ch, choose_one, new_two);
+      Include(~maybes, t_iter);
+      for guy in t_iter do
+        Include(~newret, guy join ch);
+      end for;
     end for;
     i := i+1;
   end for;
