@@ -1,7 +1,6 @@
 /*
-This file provides a sandbox to maybe find a way to find a tight set
-in P81
---pick arbitrary "staircase" sets in p81 and see if tight sets
+This file creates a recursive function and uses permutations of a selected
+parallel class to find possible tight sets following a staircase pattern in Pq
 
 Authors: Emily Barranca, Clara Buck, Lauren Hartmann
 Mentor: Morgan Rodgers
@@ -9,6 +8,11 @@ July 2018
 */
 
 function Paley(q)
+  /*
+  This function creates a Paley graph object
+  Parameters: order of the Paley graph
+  Returns: the constructed graph object
+  */
   F<x>:= FiniteField(q);
   //Graph<Point set | edge set>
   P:= {@v: v in F@};
@@ -18,6 +22,14 @@ end function;
 
 //----------------------------------------------------------------------------
 function recursive_nightmare(big_set, one, two)
+  /*
+  This function is meant to be called recursively to build a tight set of as
+  close to half the vertices in the class as possible
+  Parameters: a set of vertices chosen for the "previous" step in the staircase
+              a set of cliques giving a parallel class with one fixed vector
+              a set of a different parallel class
+  Returns: eventually the set then gets checked in main if it's a tight set
+  */
   //base case
   ts:= {};
   newret := {};
@@ -27,10 +39,7 @@ function recursive_nightmare(big_set, one, two)
     return {};
   end if;
   choice := one[1]; //choose a vector out of the remaining first parallel class
-  // for choice in one do
   one_minus := Subsets(choice, #(big_set)-1); //find all subsets of size 1-
-  // Exclude(~one, choice); //take this vector out of parallel class
-  //for loop for sets in this set
   for set in one_minus do
     setx:= choice diff set;
     x:= Rep(setx); //set x is 1 dim so this just gets rid of the outer set brackets
@@ -55,7 +64,6 @@ function recursive_nightmare(big_set, one, two)
       ts := &join{ts, {fuck}};
     end if;
   end for;
-
   //return a set of possible tight sets
   for guy in ts do
     Include(~newret, guy join big_set);
@@ -115,8 +123,6 @@ while #hasZero ne 0 do
   choice := Rep(pclass_one);
   eights:= Subsets(choice, size);
   Exclude(~pclass_one, choice); //remove a set from set of sets
-  // pclass_one := pclass_one diff choice;
-  // print pclass_one;
   i:= 1;
   for ch in eights do
     print i;
@@ -125,17 +131,14 @@ while #hasZero ne 0 do
     new_two := {t : t in pclass_two | forall(f){f: f in t | f ne x} };
     find := pclass_two diff new_two;
     vector := Rep(find);
-    // print "find", vector;
-    // print new_two;
     new_one:= {};
     newret := {};
     for vec in pclass_one do
       newsets := {p : p in vec | p notin vector};
       Include(~new_one, newsets);
     end for;
+    //ordering the parallel class correctly
     options := Permutations(new_one);
-    //for all possible orders of this set, call this
-    //permutations?
     for choose_one in options do
     t_iter := recursive_nightmare(ch, choose_one, new_two);
       Include(~maybes, t_iter);
@@ -145,18 +148,16 @@ while #hasZero ne 0 do
     end for;
     i := i+1;
   end for;
-  //can i use recursion in magma -- do i even fucking want to....
-  // #newret;
   for possible in newret do
     subgraph := sub<G | possible>;
     //check if it's a tight set
-    // #possible;
     if forall(v){v: v in possible | #(Neighbors(v) meet possible) eq alpha} then
-    // if #possible eq 36 and forall(v){v: v in possible | #(Neighbors(v) meet possible) eq 20} then
       Include(~TS, possible);
     end if;
   end for;
 end while;
+
+//results
 "Number of tight sets found ", #TS;
 print_formatting(TS, filename);
 //maybe we can find some

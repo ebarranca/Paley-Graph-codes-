@@ -14,7 +14,7 @@ function Paley(q)
   /*
   This function creates a Paley graph object
   Parameters: order of the Paley graph
-  Returns: the constructed graph objec
+  Returns: the constructed graph object
   */
   F<x>:= FiniteField(q);
   //Graph<Vertex set | Edge set>
@@ -134,7 +134,7 @@ procedure print_formatting(sets, filename)
    transferred to other files, specifically ./parser.py which sorts the tight
    sets based on order
    Parameters: the set of sets to be written to an output file
-              the filename of the output file 
+              the filename of the output file
    */
    F := Open(filename ,"w");
    for element in sets do

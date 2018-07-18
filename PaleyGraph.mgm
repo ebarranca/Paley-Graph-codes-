@@ -1,6 +1,11 @@
 //Define a function to take in an arbitrary Q and create the paley graph
 //FUNCTIONS
 function Paley(q)
+  /*
+  This function creates a Paley graph object
+  Parameters: order of the Paley graph
+  Returns: the constructed graph object
+  */
   F<x>:= FiniteField(q);
   //Graph<Point set | edge set>
   P:= {@v: v in F@};
