@@ -1,5 +1,5 @@
 //i needsomething clean to play in
-//here is the 72 day recursive function as opposed to the 11 year runtime 
+
 
 
 function Paley(q)
@@ -16,64 +16,11 @@ function Paley(q)
 end function;
 
 
-function recursive_nightmare(big_set, one, two)
-  /*
-  This function is meant to be called recursively to build a tight set of as
-  close to half the vertices in the class as possible
-  Parameters: a set of vertices chosen for the "previous" step in the staircase
-              a set of cliques giving a parallel class with one fixed vector
-              a set of a different parallel class
-  Returns: eventually the set then gets checked in main if it's a tight set
-  */
-  //base case
-  // print #big_set;
-  ts:= {};
-  newret := {};
-  if #big_set eq 1 then
-    return big_set;
-  elif #big_set eq 0 then
-    return {};
-  end if;
-
-  choice := one[1]; //choose a vector out of the remaining first parallel class
-  one_minus := Subsets(choice, #(big_set)-1); //find all subsets of size 1-
-  for set in one_minus do
-    setx:= choice diff set;
-    g:= Rep(setx); //set x is 1 dim so this just gets rid of the outer set brackets
-    // print "g", g;
-    new_two := {t : t in two | forall(f){f: f in t | f ne g} }; //take out another "vertical"
-    find := two diff new_two; //grabs the vertical we took out
-    // print "find", find;
-    vector := Rep(find); // takes that out of a set of set
-    new_one:= [];
-    for vec in one do // builds a new "parallel class" to choose from excluding
-      if vec ne choice then
-        newsets := {p : p in vec | p notin vector}; //the "verticals" we have taken out
-        Include(~new_one, newsets);
-      end if;
-    end for;
-    ret := recursive_nightmare(set, new_one, new_two); //calls the recursive function again
-    if #ret gt 1 then
-      for item in ret do
-        fuck := set join item;
-        ts := &join{ts, {fuck}};
-      end for;
-    else
-      fuck := set join ret;
-      ts := &join{ts, {fuck}};
-    end if;
-  end for;
-  for guy in ts do
-    Include(~newret, guy join big_set);
-  end for;
-  return newret;
-end function;
-
-//main
+//main------------------------------------------------------------------
 //set up all the usual garbage
 Z:= Integers();
-q:= 49;
-filename := "~/Paley-Graph-text-files/p81/staircase_tight_sets_p81.txt" ;
+q:= 81;
+// filename := "~/Paley-Graph-text-files/p81/staircase_tight_sets_p81.txt" ;
 size := Z!(Sqrt(q)-1);
 p := Z!Sqrt(q);
 F<x> := FiniteField(q);
@@ -93,62 +40,108 @@ findF9:= {c: c in all |  V!(F!0) in c and  V!(F!1) in c and  V!(F!2) in c};
 one := Rep(findF9);
 Exclude(~hasZero, one);
 disjoint_one := {c: c in all | #(c meet one) eq 0};
-second := {p: p in disjoint_one| V!(x^11) in p};
+second := {p: p in disjoint_one| V!(x^64) in p}; //11
 second := Rep(second);
-third := {p: p in disjoint_one | V!(x^29) in p};
+third := {p: p in disjoint_one | V!(x^16) in p}; //29
 third := Rep(third);
 seq:= [second,one, third];
 Exclude(~disjoint_one, second);
 Exclude(~disjoint_one, third);
-options:= Permutations(disjoint_one);
-ops := {};
-for perm in options do
-  Include(~ops, seq cat perm);
-end for;
-// print #options;
 
-other_pclass := Rep(hasZero);
-Exclude(~hasZero, other_pclass);
-disjoint_other := {c: c in all | #(c meet other_pclass) eq 0};
-pclass2 := disjoint_other join {other_pclass};
-
-maybe:= {};
-TS:={};
-
-//start building sets of size 36 to test if they're tight
-for perm in ops do
-  build := {};
-  vec := Subsets(perm[1], p-1);
-  i:=1;
-  for choice in vec do
-    print i;
-    // perm[1];
-    difference := Rep(perm[1] diff choice);
-    // difference;
-    find := Rep({l: l in pclass2 | difference in l});
-    // Exclude(~pclass2, find);
-    new_one := SequenceToSet(perm) diff {perm[1]};
-    newret:={};
-    ret := recursive_nightmare(choice, perm, pclass2);
-    for guy in ret do
-      Include(~newret, guy join choice);
+// while #hasZero gt 0 do
+  other_pclass := Rep(hasZero);
+  Exclude(~hasZero, other_pclass);
+  disjoint_other := {c: c in all | #(c meet other_pclass) eq 0};
+  pclass2 := disjoint_other join {other_pclass};
+  pclass2;
+ 
+  //hardcode for the first three
+  starter_set:={};
+  i:=p-1;
+  ignore:= {};
+  for item in seq do
+    choice := Rep(Subsets(item, i));
+    d:= Rep(item diff choice);
+    find := Rep({l: l in pclass2 | d in l});
+    Exclude(~pclass2, find);
+    for el in find do
+      Include(~ignore, el);
     end for;
-    // print "\n",  ret;
-    Include(~build, newret);
-    i:=i+1;
+    Include(~starter_set, choice);
+    i:= i-1;
   end for;
-  Include(~maybe, build);
-end for;
 
-//check to see if any of the sets we built are tight staircases
+  //build a starter set
+  starter:= {};
+  for set in starter_set do
+    for el in set do
+      Include(~starter, el);
+    end for;
+  end for;
 
-for possible in maybe do
-  subgraph := sub<G | possible>;
-  //check if it's a tight set
-  print "    ", #possible;
-  if forall(v){v: v in possible | #(Neighbors(v) meet possible) eq alpha} then
-    Include(~TS, possible);
-  end if;
-end for;
+  //build permutation options
+  newsmall := {};
+  for left in disjoint_one do
+    newleft := {};
+    for el in left do
+      if el notin ignore then
+        Include(~newleft, el);
+      end if;
+    end for;
+    Include(~newsmall, newleft);
+  end for;
+  options:= Permutations(newsmall);
+
+
+  maybe:= {};
+  TS:={};
+  hold := i;
+  hold_p2 := pclass2;
+  //start building sets of size 36 to test if they're tight
+  for perm in options do
+    build := {};
+    Include(~build, starter);
+    //holders to reset after loop guy
+    i:= hold;
+    ignore := {};
+    j:= 1;
+    pclass2:= hold_p2;
+
+    while i ge 1 do
+      line := perm[j] diff ignore;
+      next := Rep(Subsets(line, i));
+      //loop through ignore and perm and take out
+      // i:=1;
+      // print i;
+      difference := Rep(line diff next);
+      find := Rep({l: l in pclass2 | difference in l});
+      for el in find do
+        Include(~ignore, el);
+      end for;
+      //take these out of
+      Exclude(~pclass2, find);
+      // Exclude(~perm, perm[1]);
+      Include(~build, next);
+      i:=i-1;
+      j:= j+1;
+    end while;
+    Include(~maybe, build);
+  end for;
+  poss:= {};
+  for set in maybe do
+    Include(~poss, &join(set));
+  end for;
+
+  //check to see if any of the sets we built are tight staircases
+
+  for possible in poss do
+    subgraph := sub<G | possible>;
+    //check if it's a tight set
+    print "    ", #possible;
+    if forall(v){v: v in possible | #(Neighbors(v) meet possible) eq alpha} then
+      Include(~TS, possible);
+    end if;
+  end for;
+// end while;
 
 #TS; // print number of sets that are tight staircases
