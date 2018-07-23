@@ -1,11 +1,13 @@
 /*
-This file creates a recursive function and uses permutations of a selected
+This file creates a recursive function and uses a cal;culated order of a fixed 
 parallel class to find possible tight sets following a staircase pattern in Pq
 
 Authors: Emily Barranca, Clara Buck, Lauren Hartmann
 Mentor: Morgan Rodgers
 July 2018
 */
+
+/***************************** Function Declarations ***********************/
 
 function Paley(q)
   /*
@@ -90,9 +92,9 @@ end procedure;
 
 
 /***************************** MAIN ***********************/
-// q:= 81;
 Z:= Integers();
 q:= 81;
+// filename := "./dummy.txt";
 filename := "~/Paley-Graph-text-files/p81/staircase_tight_sets_p81.txt" ;
 size := Z!(Sqrt(q)-1);
 p := Z!Sqrt(q);
@@ -101,53 +103,77 @@ G:= Paley(q);
 V:= VertexSet(G);
 alpha := Z!((q-1)/4);
 
-
 all:= AllCliques(G,p);
 //find cliques with 0
 hasZero := {c: c in all | V!(F!0) in c};
 TS:= {};
-one := Rep(hasZero);
+//hardcoded for p25 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// one := Rep({c: c in all |  V!(F!0) in c and  V!(F!1) in c and V!(F!2) in c and V!(F!3) in c and V!(F!4) in c});
+//hardcoded for p49 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// one := Rep({c: c in all | V!(F!0) in c and  V!(F!1) in c and V!(F!2) in c and V!(F!3) in c and V!(F!4) in c and V!(F!5) in c and V!(F!6) in c});
+
+//hardcoded for p81 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+one := Rep({c: c in all |  V!(F!0) in c and  V!(F!1) in c and  V!(F!2) in c});
 Exclude(~hasZero, one);
 while #hasZero ne 0 do
   two := Rep(hasZero);
   Exclude(~hasZero, two);
   //find disjoint cliques that make up parallel class
-  disjoint_one := {c: c in all | #(c meet one) eq 0};
-  disjoint_two := {c: c in all | #(c meet two) eq 0};
-  //rep choose wherever we are and take out of set
-  pclass_one := &join{disjoint_one, {one}};
-  pclass_two := &join{disjoint_two, {two}};
 
+  disjoint_one := {c: c in all | #(c meet one) eq 0};
+
+  //specific to p25 to get code to work ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  pclass_one := [];
+  // pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^23) in d}));
+  // pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^10) in d}));
+  // pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^15) in d}));
+  // pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^11) in d}));
+
+  //hardcoded for p49 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  // pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^31) in d}));
+  // pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^21) in d}));
+  // pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^10) in d}));
+  // pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^22) in d}));
+  // pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^45) in d}));
+  // pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^25) in d}));
+
+
+  //hardcoded for p81 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^77) in d}));
+  pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^23) in d}));
+  pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^34) in d}));
+  pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^44) in d}));
+  pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^52) in d}));
+  pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^64) in d}));
+  pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^73) in d}));
+  pclass_one := Append(pclass_one, Rep({d:d in disjoint_one | V!(x^71) in d}));
+
+  disjoint_two := {c: c in all | #(c meet two) eq 0};
+  pclass_two := &join{disjoint_two, {two}};
+  choice := one;
   maybes:={};
   excludes := {};
-  choice := Rep(pclass_one);
   eights:= Subsets(choice, size);
   Exclude(~pclass_one, choice); //remove a set from set of sets
   i:= 1;
   for ch in eights do
     print i;
     setx:= choice diff ch;
-    x:= Rep(setx);
-    new_two := {t : t in pclass_two | forall(f){f: f in t | f ne x} };
+    k:= Rep(setx);
+    new_two := {t : t in pclass_two | forall(f){f: f in t | f ne k} };
     find := pclass_two diff new_two;
     vector := Rep(find);
-    new_one:= {};
+    new_one:= [];
     newret := {};
     for vec in pclass_one do
       newsets := {p : p in vec | p notin vector};
       Include(~new_one, newsets);
     end for;
-    //ordering the parallel class correctly
-    options := Permutations(new_one);
-    j:=0;
-    for choose_one in options do
-      print "  ", j;
-    t_iter := recursive_nightmare(ch, choose_one, new_two);
-      Include(~maybes, t_iter);
-      for guy in t_iter do
-        Include(~newret, guy join ch);
-      end for;
-      j:=j+1;
+
+    t_iter := recursive_nightmare(ch, new_one, new_two);
+    Include(~maybes, t_iter);
+    for guy in t_iter do
+      Include(~newret, guy join ch);
     end for;
     i := i+1;
   end for;

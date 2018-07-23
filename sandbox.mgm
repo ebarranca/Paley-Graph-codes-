@@ -1,6 +1,17 @@
 //i needsomething clean to play in
 
 
+/*
+in building P81..
+
+we took a clique disjoint with an independent set and built coordinate axes
+can we try with a different slope?
+TODO what are the slopes
+TODO what is the math for the slopes
+are we sure there is a slope 1  -- TODO check with clara on the math
+
+*/
+
 
 function Paley(q)
   /*
@@ -54,7 +65,7 @@ Exclude(~disjoint_one, third);
   disjoint_other := {c: c in all | #(c meet other_pclass) eq 0};
   pclass2 := disjoint_other join {other_pclass};
   pclass2;
- 
+
   //hardcode for the first three
   starter_set:={};
   i:=p-1;
