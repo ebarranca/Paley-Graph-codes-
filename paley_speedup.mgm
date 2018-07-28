@@ -66,7 +66,7 @@ function convert_to_tightsets(G, seq, q)
               sequence of characteristic vectors
               the order q of the Paley graph
   Returns: set of all tight sets corresponding to the inputted characteristic
-      vectors. lements in set are Type() GraphVert
+      vectors. elements in set are Type() GraphVert
   */
   F:= FiniteField(q);
   f:= {@f:f in F@};
@@ -177,8 +177,10 @@ ts:= {};
 for i in {1..25} do
   print i;
   ts2 := tight_set_speedup(G, 2, i);
+  if ts2 ne {} then
   // ts:= &join{ts, ts2};
-  Include(~ts, ts2);
+    Include(~ts, ts2);
+  end if;
 end for;
 
 // seven := {v: v in ts | #v eq 7};
@@ -193,7 +195,20 @@ end for;
 // final := RemIsom(newsets, H, X);
 // #final;
 
-// print_formatting(ts);
-// PrintFile("./Paley49high_type2.txt", ts: Overwrite:= false);
+F<x> := FiniteField(49);
+V:= VertexSet(G);
+
+set := {V!(F!1), V!(F!2), V!(F!3), V!(F!4), V!(F!5), V!(F!6), V!(x^11), V!(x^31),
+V!(x), V!(x^5), V!(x^38), V!(x^21),V!(x^27),V!(x^6),V!(x^47), V!(x^46),V!(x^9),
+V!(x^19),V!(x^15),V!(x^37),V!(x^41)};
+
+for item in ts do
+  if set in item then
+    print "true";
+  end if;
+end for;
+
+// print_formatting(ts,"~/Paley_Graph_text_files/Paley81type2.txt");
+// PrintFile("~/Paley_Graph_text_files/Paley81type2.txt", ts: Overwrite:= false);
 
 "done";

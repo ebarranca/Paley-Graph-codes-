@@ -1,0 +1,69 @@
+function Paley(q)
+  F<x>:= FiniteField(q);
+  //Graph<Vertex set | Edge set>
+  P:= {@v: v in F@};
+  G,V,E := Graph <P | {<a,{b: b in P| (a-b) ne 0 and IsSquare(a-b)}>: a in P}>;
+  return G;
+end function;
+
+function convert_to_tightsets(G, seq, q)
+  F:= FiniteField(q);
+  f:= {@f:f in F@};
+  V:= VertexSet(G);
+  verts:= {@v: v in V@};
+  ret:= {};
+  for item in seq do
+    set:={};
+    i := 1;
+    for entry in ElementToSequence(item) do
+      if entry eq "1" then
+        Include(~set, verts[i]);
+      end if;
+      if entry ne ","  and entry ne "[" and entry ne "]" then
+        i:= i+1;
+      end if;
+    end for;
+    Include(~ret, set);
+  end for;
+  return ret;
+end function;
+
+function RemIsom(T,H,X)
+  TS := {};
+  while not IsEmpty(T) do
+    A := Rep(T);
+    Include(~TS,A);
+    for B in T do
+      if IsConjugate(H, X, A, B) then
+        Exclude(~T,B);
+      end if;
+    end for;
+  end while;
+  return TS;
+end function;
+
+sequence := [];
+//grab each char vec from "~/Paley-Graph-text-files/Paley81p2.sol"
+infile := Open("~/Paley-Graph-text-files/Paley81p2.sol", "r");
+// for line in infile do
+while true do
+  line := Gets(infile);
+  // line;
+  if IsEof(line) then
+    break;
+  else
+    sequence := Append(sequence, line);
+  end if;
+end while;
+
+G:= Paley(81);
+ts := convert_to_tightsets(G, sequence,81);
+cliques := AllCliques(G, 9);
+newsets := {t: t in ts | forall(c){c: c in cliques | #(c meet t) ne 9}};
+// p2 := {t: t in newsets | #t eq 18};
+t2:= {n: n in newsets | forall(v){v: v in n| #(Neighbors(v) meet n) eq 12}};
+H,X := AutomorphismGroup(G);
+isom := RemIsom(t2,H,X);
+
+isom;
+#isom;
