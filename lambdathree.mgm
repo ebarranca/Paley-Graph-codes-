@@ -1,0 +1,69 @@
+/*
+This file contains code to test about 3 "collinear" points in the affine plane
+*/
+function Paley(q)
+  /*
+  This function creates a Paley graph object
+  Parameters: order of the Paley graph
+  Returns: the constructed graph object
+  */
+  F<x>:= FiniteField(q);
+  //Graph<Vertex set | Edge set>
+  P:= {@v: v in F@};
+  G,V,E := Graph <P | {<a,{b: b in P| (a-b) ne 0 and IsSquare(a-b)}>: a in P}>;
+  return G;
+end function;
+
+
+//MAIN
+p25 := Paley(25);
+F25<x> := FiniteField(25);
+V25 := VertexSet(p25);
+//see if each way to choose 3 on a line has a common number of neighbors
+affineLine := {V25!(x^14), V25!(x^3), V25!(x^10), V25!(x^13), V25!(x^5)};
+subs := Subsets(affineLine,3);
+for s in subs do
+  inter := {ve: ve in V25 | forall(su){su: su in s | ve in Neighbors(su)}};
+  print #inter;
+end for;
+
+///////////////////////////////////////////////////////////////////////////////
+p49 := Paley(49);
+F49<x> := FiniteField(49);
+V49 := VertexSet(p49);
+//see if each way to choose 3 on a line has a common number of neighbors
+affineLine := {V49!(x^44), V49!(x^13), V49!(x^39), V49!(x^10), V49!(x^46), V49!(x^9), V49!(x^19)};
+subs := Subsets(affineLine,3);
+for s in subs do
+  inter := {ve: ve in V49 | forall(su){su: su in s | ve in Neighbors(su)}};
+  // print "\n", s;
+  print #inter;
+  // printdebug := s;
+end for;
+
+/////////////////////////////////////////////////////////////////////////////
+p81 := Paley(81);
+F81<x> := FiniteField(81);
+V81 := VertexSet(p81);
+//see if each way to choose 3 on a line has a common number of neighbors
+affineLine := {V81!(x^68), V81!(x^41), V81!(x^35), V81!(x^54), V81!(x^53), V81!(x^39), V81!(x^12), V81!(x^9), V81!(x^46)};
+subs := Subsets(affineLine,3);
+for s in subs do
+  inter := {ve: ve in V81 | forall(su){su: su in s | ve in Neighbors(su)}};
+  // print "\n", s;
+  print #inter;
+end for;
+
+//////////////////////////////////////////////////////////////////////////////
+p121 := Paley(121);
+F121<x> := FiniteField(121);
+V121 := VertexSet(p121);
+//see if each way to choose 3 on a line has a common number of neighbors
+affineLine := {V121!(x^16), V121!(x^37), V121!(x^107), V121!(x^116), V121!(x^91),
+V121!(x^33), V121!(x^94), V121!(x^102), V121!(x^14), V121!(x^101), V121!(x^63)};
+subs := Subsets(affineLine,3);
+for s in subs do
+  inter := {ve: ve in V121 | forall(su){su: su in s | ve in Neighbors(su)}};
+  // print "\n", s;
+  print #inter;
+end for;
