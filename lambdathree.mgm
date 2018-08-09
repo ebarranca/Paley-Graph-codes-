@@ -1,5 +1,16 @@
 /*
 This file contains code to test about 3 "collinear" points in the affine plane
+(Hardcoded examples)
+
+FOUND: once we hit q=11, there is no way to have only q-3 common Neighbors
+If we look at a parameter 2 indecomposable tight set for q=7, the ones that
+work that have 3 points on some line, have those 3 points such that they have
+only q-3 = 4 common neighbors (the rest of the line/clique)
+
+Authors: Emily Barranca, Clara Buck, Lauren Hartmann
+Mentor: Dr. Morgan Rodgers
+CSU, Fresno REU
+Summer 2018
 */
 function Paley(q)
   F<x>:= FiniteField(q);
@@ -49,6 +60,7 @@ end for;
 p121 := Paley(121);
 F121<x> := FiniteField(121);
 V121 := VertexSet(p121);
+//affine line can be any arbitrary clique
 affineLine := {V121!(x^16), V121!(x^37), V121!(x^107), V121!(x^116), V121!(x^91),
 V121!(x^33), V121!(x^94), V121!(x^102), V121!(x^14), V121!(x^101), V121!(x^63)};
 subs := Subsets(affineLine,3);
